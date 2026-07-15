@@ -4,6 +4,8 @@ An interactive, single-page educational web app that visualizes how **height** a
 relate to dating-app messaging outcomes. It's a self-contained `index.html` — no build step, no
 dependencies — with polished 3D-style artwork and animations.
 
+**▶ Live demo:** https://rossdavilla.github.io/height-and-salary-dating-sim/
+
 ## Features
 
 - **Touch-friendly controls** — adjust height (5'5"–6'2") and annual salary ($20k–$300k) with
