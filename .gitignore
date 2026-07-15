@@ -1,0 +1,5 @@
+# macOS
+.DS_Store
+
+# Internal image backups (uncropped originals kept locally, not needed in the app)
+img/_orig/
