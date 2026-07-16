@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Dating Messages Simulator</title>
+<style>
+  :root{
+    --tinder-pink:#fd3a73; --tinder-orange:#ff7a00; --ink:#0f1115; --screen:#0c1222;
+    --text:#ffffff; --accent:#ff3265; --success:#24e0a7; --heart:#ff5c8a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    background:linear-gradient(160deg,var(--tinder-pink) 0%, var(--tinder-orange) 70%);
+    overflow:hidden;}
+
+  .bg-decor{position:fixed;inset:-6%;background:url("img/bg.png") center/cover no-repeat;opacity:.5;pointer-events:none;z-index:0;animation:drift 46s ease-in-out infinite alternate}
+  @keyframes drift{from{transform:translate(0,0)}to{transform:translate(2.2%,-2.4%)}}
+
+  /* full-height no-scroll column */
+  .app{position:relative;z-index:1;height:100vh;height:100dvh;display:flex;flex-direction:column;
+    padding:8px 12px calc(10px + env(safe-area-inset-bottom));gap:8px;max-width:520px;margin:0 auto}
+
+  .header{display:flex;align-items:center;gap:9px;flex:0 0 auto;padding:2px}
+  .logo{width:32px;height:32px;border-radius:9px;box-shadow:0 3px 8px #0004;display:block}
+  .title{font-size:17px;font-weight:800;letter-spacing:.2px;text-shadow:0 1px 0 #0002}
+
+  /* stage fills the top, holds character + money */
+  .stage{position:relative;flex:1 1 auto;min-height:0;border-radius:24px;overflow:hidden;
+    background:#0c1222 url("img/stage.png") center bottom/cover no-repeat;box-shadow:0 14px 34px #0005, inset 0 0 0 1px #ffffff10}
+
+  .m-man{position:absolute;bottom:4%;left:3%;transform-origin:bottom center;transition:transform .3s ease;z-index:2}
+  .char-shadow{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);opacity:.8;pointer-events:none}
+  .char{display:block;animation:breathe 3.4s ease-in-out infinite}
+  .char img{display:block;width:100%;height:auto;filter:drop-shadow(0 10px 14px #0005)}
+  @keyframes breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.014)}}
+  .char.hop{animation:hop .95s ease}
+  @keyframes hop{0%{transform:translateY(0)}28%{transform:translateY(-20px)}52%{transform:translateY(0)}68%{transform:translateY(-8px)}84%{transform:translateY(0)}100%{transform:translateY(0)}}
+
+  .m-money{position:absolute;bottom:5%;right:5%;pointer-events:none;z-index:2}
+  .coin{position:absolute;left:50%;bottom:0;height:auto;filter:drop-shadow(0 5px 7px #0006);transform:translateX(-50%) scale(1);animation:pop .4s cubic-bezier(.2,1.3,.5,1) backwards}
+  @keyframes pop{0%{transform:translateX(-50%) scale(0)}70%{transform:translateX(-50%) scale(1.12)}100%{transform:translateX(-50%) scale(1)}}
+
+  .confetti{position:absolute;left:50%;top:46%;width:96%;transform:translate(-50%,-50%) scale(.35);opacity:0;pointer-events:none;z-index:4}
+  .confetti.play{animation:burst 1s ease-out}
+  @keyframes burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}22%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.25)}}
+
+  .rain-area{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:3}
+  .heart-fall{position:absolute;top:-56px;width:44px;height:44px;will-change:transform;animation:fall linear forwards}
+  .heart-fall img{width:100%;height:100%;display:block;filter:drop-shadow(0 3px 4px #0004)}
+  @keyframes fall{to{transform:translate(var(--drift,0px),640px) rotate(var(--spin,360deg));opacity:.9}}
+
+  /* result chip overlaid on the stage */
+  .result-chip{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:6;white-space:nowrap;
+    background:#00000066;border:1px solid #ffffff33;border-radius:999px;padding:8px 16px;font-size:15px;font-weight:800;
+    color:#fff;opacity:0;transition:opacity .3s ease;backdrop-filter:blur(4px)}
+  .result-chip.show{opacity:1}
+  .result-chip strong{color:var(--success);font-size:17px}
+
+  /* controls below the stage */
+  .controls{flex:0 0 auto;display:flex;flex-direction:column;gap:8px}
+  .control{background:#0000001f;border:1px solid #ffffff22;border-radius:16px;padding:9px 11px}
+  .clabel{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+  .ctitle{font-size:15px;font-weight:800}
+  .cavg{font-size:12px;color:#fffde6;opacity:.85}
+  .stepper{display:flex;align-items:center;gap:12px}
+  .step-btn{width:54px;height:52px;flex:0 0 auto;border:none;border-radius:16px;font-size:28px;line-height:1;font-weight:800;
+    color:#fff;cursor:pointer;background:linear-gradient(180deg,var(--tinder-pink),var(--accent));box-shadow:0 5px 12px #0005;
+    display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;touch-action:manipulation;
+    transition:transform .08s ease, box-shadow .12s ease}
+  .step-btn:active{transform:scale(.9)}
+  .step-btn:disabled{opacity:.35;box-shadow:none;transform:none}
+  .stepper .value{flex:1;min-width:0;text-align:center;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;
+    background:#0000002e;border:1px solid #ffffff26;border-radius:13px;padding:12px 6px}
+  #showResults{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:15px;border:none;border-radius:999px;
+    font-size:19px;font-weight:800;cursor:pointer;box-shadow:0 6px 16px #0005;color:#fff;
+    background:linear-gradient(180deg,var(--tinder-pink),var(--accent));transition:transform .12s ease, box-shadow .12s ease}
+  #showResults:active{transform:scale(.98)}
+  #showResults img{width:24px;height:24px;filter:drop-shadow(0 1px 2px #0004)}
+</style>
+</head>
+<body>
+<div class="bg-decor" aria-hidden="true"></div>
+<div class="app">
+  <div class="header">
+    <img class="logo" src="img/hearticon.png" alt="App logo" />
+    <div class="title">Dating Messages Simulator</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="m-man" id="man">
+      <img class="char-shadow" id="charShadow" src="img/shadow.png" alt="" />
+      <div class="char" id="char">
+        <img id="charImg" src="img/body-blank.png" alt="Avatar" />
+      </div>
+    </div>
+    <div class="m-money" id="pile"></div>
+    <img class="confetti" id="confetti" src="img/confetti.png" alt="" />
+    <div class="rain-area" id="rain"></div>
+    <div class="result-chip" id="resultChip">Messages / month: <strong><span id="messageCount">—</span></strong></div>
+  </div>
+
+  <div class="controls">
+    <div class="control">
+      <div class="clabel"><span class="ctitle">Height</span><span class="cavg" id="heightLabel">5'10" (70 in)</span></div>
+      <div class="stepper">
+        <button class="step-btn" id="hDown" type="button" aria-label="Decrease height">−</button>
+        <div class="value" id="heightValue">5'10" (70 in)</div>
+        <button class="step-btn" id="hUp" type="button" aria-label="Increase height">+</button>
+      </div>
+    </div>
+    <div class="control">
+      <div class="clabel"><span class="ctitle">Annual Salary</span><span class="cavg">avg $45,000</span></div>
+      <div class="stepper">
+        <button class="step-btn" id="sDown" type="button" aria-label="Decrease salary">−</button>
+        <div class="value" id="salaryValue">$45,000</div>
+        <button class="step-btn" id="sUp" type="button" aria-label="Increase salary">+</button>
+      </div>
+    </div>
+    <button id="showResults"><img src="img/transparent%20heart.png" alt="" />Show Results</button>
+  </div>
+</div>
+<script>
+// ---------- image assets ----------
+const FACES = {
+  crying:'img/body-1-crying.png', sad:'img/body-2-sad.png', upset:'img/body-3-upset.png',
+  meh:'img/body-4-meh.png', smile:'img/body-5-smile.png', flirty:'img/body-6-flirty.png',
+  love:'img/body-7-love.png', hearteyes:'img/body-8-hearteyes.png', blank:'img/body-blank.png'
+};
+const MONEY = { poor:'img/money-poor.png', med:'img/money-med.png', rich:'img/money-rich.png' };
+const HEARTS = ['img/heart.png','img/transparent%20heart.png'];
+[...Object.values(FACES),...Object.values(MONEY),...HEARTS,'img/confetti.png']
+  .forEach(src => { const i = new Image(); i.src = src; });
+
+// ---------- utilities ----------
+const fmtMoney = (n) => n.toLocaleString(undefined, { style:'currency', currency:'USD', maximumFractionDigits:0 });
+const inchesToFeetInches = (inchesVal) => { const ft = Math.floor(inchesVal/12); const inch = Math.round(inchesVal - ft*12); return `${ft}'${inch}\"`; };
+const clamp = (x,a,b) => Math.max(a, Math.min(b, x));
+
+// ---------- state & DOM ----------
+const HEIGHT_MIN = 65, HEIGHT_MAX = 74, HEIGHT_STEP = 1;
+const SAL_MIN = 20000, SAL_MAX = 300000, SAL_STEP = 20000;
+let current = { height_in: 70, salary_usd: 45000 };
+let model = null;
+let MICON = 104, MFILL = 360;                 // money bundle width + full-stack height (set by layout)
+const stageEl = document.getElementById('stage');
+const hDown = document.getElementById('hDown'), hUp = document.getElementById('hUp');
+const sDown = document.getElementById('sDown'), sUp = document.getElementById('sUp');
+const heightLabel = document.getElementById('heightLabel');
+const heightValue = document.getElementById('heightValue');
+const salaryValue = document.getElementById('salaryValue');
+const man = document.getElementById('man');
+const charEl = document.getElementById('char');
+const charImg = document.getElementById('charImg');
+const charShadow = document.getElementById('charShadow');
+const pile = document.getElementById('pile');
+const rain = document.getElementById('rain');
+const confetti = document.getElementById('confetti');
+const messageCount = document.getElementById('messageCount');
+const resultChip = document.getElementById('resultChip');
+
+function resetAfterInput(){
+  resultChip.classList.remove('show');
+  messageCount.textContent = '—';
+  while (rain.firstChild) rain.removeChild(rain.firstChild);
+  charImg.src = FACES.blank;
+}
+
+// size character + money to the current stage so it fills without scrolling
+function layout(){
+  const H = stageEl.clientHeight, W = stageEl.clientWidth;
+  if (!H || !W) return;
+  const baseW = Math.min(0.32 * H, 0.42 * W);        // char base (scale-1); max render = 1.5x
+  man.style.width = baseW + 'px';
+  charShadow.style.width = (0.66 * baseW) + 'px';
+  MFILL = 0.86 * H;
+  MICON = Math.min(0.27 * W, 0.30 * MFILL);           // money bundle width
+  pile.style.width = MICON + 'px';
+  pile.style.height = MFILL + 'px';
+  buildPile();
+}
+
+function updateHeightViz(){
+  const h = current.height_in, minH=65, maxH=74;
+  const scale = 0.75 + 0.75 * ((h - minH) / (maxH - minH));
+  man.style.transform = `scale(${scale})`;
+}
+
+function moneyTier(s){
+  if (s < 70000)  return { img: MONEY.poor, min: 20000,  max: 70000  };
+  if (s < 160000) return { img: MONEY.med,  min: 70000,  max: 160000 };
+  return                 { img: MONEY.rich, min: 160000, max: 300000 };
+}
+function buildPile(){
+  const s = current.salary_usd;
+  const t = moneyTier(s);
+  const n = clamp(1 + Math.round((s - t.min) / (t.max - t.min) * 9), 1, 10);
+  const ICON_H = MICON / 1.442;
+  const step = (MFILL - ICON_H) / 9;
+  pile.innerHTML = '';
+  for (let i=0;i<n;i++){
+    const img = document.createElement('img');
+    img.className = 'coin';
+    img.src = t.img; img.alt = '';
+    img.style.width = MICON + 'px';
+    img.style.bottom = (i * step).toFixed(1) + 'px';
+    img.style.zIndex = i;
+    img.style.animationDelay = (i * 45) + 'ms';
+    pile.appendChild(img);
+  }
+}
+
+function spawnHeartRain(count){
+  const w = rain.clientWidth;
+  const n = Math.min(120, Math.max(1, Math.round(count)));
+  for (let i=0;i<n;i++){
+    const d = document.createElement('div');
+    d.className = 'heart-fall';
+    const size = 24 + Math.random()*28;
+    d.style.width = d.style.height = size + 'px';
+    d.style.left = Math.random()*(w-size) + 'px';
+    d.style.setProperty('--drift', (Math.random()*80 - 40).toFixed(0) + 'px');
+    d.style.setProperty('--spin', (Math.random()*540 - 180).toFixed(0) + 'deg');
+    d.style.animationDuration = (2.4 + Math.random()*1.8) + 's';
+    d.style.animationDelay = (Math.random()*0.6) + 's';
+    const img = document.createElement('img');
+    img.src = HEARTS[Math.random() < 0.5 ? 0 : 1]; img.alt = '';
+    d.appendChild(img);
+    rain.appendChild(d);
+    setTimeout(()=> d.remove(), 5200);
+  }
+}
+
+function setFaceByHearts(hearts){
+  let key;
+  if (hearts <= 2) key='crying';
+  else if (hearts <= 5) key='sad';
+  else if (hearts <= 10) key='upset';
+  else if (hearts <= 15) key='meh';
+  else if (hearts <= 20) key='smile';
+  else if (hearts <= 25) key='flirty';
+  else if (hearts <= 35) key='love';
+  else key='hearteyes';
+  charImg.src = FACES[key];
+}
+
+function playConfetti(){ confetti.classList.remove('play'); void confetti.offsetWidth; confetti.classList.add('play'); }
+function playHop(){ charEl.classList.remove('hop'); void charEl.offsetWidth; charEl.classList.add('hop'); }
+charEl.addEventListener('animationend', (e)=>{ if(e.animationName==='hop') charEl.classList.remove('hop'); });
+
+function countUp(el, target){
+  const dur = 800, start = performance.now();
+  function step(now){
+    const t = clamp((now - start)/dur, 0, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(target * eased).toLocaleString();
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function setDefaultModel(){
+  const S0 = 20000, S1 = 70000, Smax = 300000;
+  const expA = 0.5, expB = 9.5, expPow = 1.46;
+  const m_lin = (50 - 10) / (300000 - 70000);
+  function M_base(s){
+    s = clamp(s, S0, Smax);
+    if (s <= S1){ const t = (s - S0) / (S1 - S0); return expA + expB * Math.pow(Math.max(0, t), expPow); }
+    return 10 + m_lin * (s - S1);
+  }
+  model = { predict: (h, s) => {
+    const s_eff = clamp(s + 25000 * (h - 70), S0, Smax);
+    return Math.round(Math.max(0, M_base(s_eff)));
+  }};
+}
+setDefaultModel();
+
+function renderHeight(){
+  const txt = `${inchesToFeetInches(current.height_in)} (${current.height_in} in)`;
+  heightValue.textContent = txt;
+  hDown.disabled = current.height_in <= HEIGHT_MIN;
+  hUp.disabled   = current.height_in >= HEIGHT_MAX;
+}
+function renderSalary(){
+  salaryValue.textContent = fmtMoney(current.salary_usd);
+  sDown.disabled = current.salary_usd <= SAL_MIN;
+  sUp.disabled   = current.salary_usd >= SAL_MAX;
+}
+function changeHeight(delta){
+  const v = clamp(current.height_in + delta, HEIGHT_MIN, HEIGHT_MAX);
+  if (v === current.height_in) return;
+  current.height_in = v; renderHeight(); updateHeightViz(); resetAfterInput();
+}
+function changeSalary(delta){
+  const v = clamp(current.salary_usd + delta, SAL_MIN, SAL_MAX);
+  if (v === current.salary_usd) return;
+  current.salary_usd = v; renderSalary(); buildPile(); resetAfterInput();
+}
+function bindHold(btn, fn){
+  let to = null, iv = null;
+  const stop = ()=>{ clearTimeout(to); clearInterval(iv); to = iv = null; };
+  btn.addEventListener('pointerdown', (e)=>{
+    e.preventDefault();
+    if (btn.disabled) return;
+    try { btn.setPointerCapture(e.pointerId); } catch(_) {}
+    fn();
+    to = setTimeout(()=>{ iv = setInterval(()=>{ btn.disabled ? stop() : fn(); }, 80); }, 380);
+  });
+  btn.addEventListener('pointerup', stop);
+  btn.addEventListener('pointercancel', stop);
+  btn.addEventListener('lostpointercapture', stop);
+  btn.addEventListener('contextmenu', (e)=> e.preventDefault());
+}
+bindHold(hDown, ()=> changeHeight(-HEIGHT_STEP));
+bindHold(hUp,   ()=> changeHeight(+HEIGHT_STEP));
+bindHold(sDown, ()=> changeSalary(-SAL_STEP));
+bindHold(sUp,   ()=> changeSalary(+SAL_STEP));
+
+document.getElementById('showResults').addEventListener('click', ()=>{
+  const m = model.predict(current.height_in, current.salary_usd);
+  countUp(messageCount, m);
+  resultChip.classList.add('show');
+  const hearts = clamp(Math.round(m), 0, 80);
+  setFaceByHearts(hearts);
+  playHop(); playConfetti(); spawnHeartRain(hearts);
+});
+
+let rz;
+window.addEventListener('resize', ()=>{ clearTimeout(rz); rz = setTimeout(layout, 120); });
+window.addEventListener('orientationchange', ()=> setTimeout(layout, 250));
+
+(function init(){
+  current.height_in = 70; current.salary_usd = 45000;
+  renderHeight(); renderSalary();
+  layout(); updateHeightViz(); resetAfterInput();
+})();
+</script>
+</body>
+</html>
