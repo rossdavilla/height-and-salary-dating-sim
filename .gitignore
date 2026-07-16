@@ -4,3 +4,4 @@
 # Internal image backups (pre-crop / pre-hair originals kept locally, not needed in the app)
 img/_orig/
 img/original/
+img/_pngsrc/

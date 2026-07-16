@@ -13,7 +13,7 @@
   body{margin:0;min-height:100vh;color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(160deg,var(--tinder-pink) 0%, var(--tinder-orange) 70%);}
 
   /* faint floating heart décor behind everything */
-  .bg-decor{position:fixed;inset:-6%;background:url("img/bg.png") center/cover no-repeat;opacity:.55;pointer-events:none;z-index:0;animation:drift 46s ease-in-out infinite alternate}
+  .bg-decor{position:fixed;inset:-6%;background:url("img/bg.webp") center/cover no-repeat;opacity:.55;pointer-events:none;z-index:0;animation:drift 46s ease-in-out infinite alternate}
   @keyframes drift{from{transform:translate(0,0)}to{transform:translate(2.2%,-2.4%)}}
 
   .container{position:relative;z-index:1;max-width:1200px;margin:24px auto;padding:16px 20px}
@@ -44,7 +44,7 @@
   .phone{flex:1;display:flex;justify-content:center}
   .bezel{width:390px;height:546px;background:var(--ink);border-radius:36px;box-shadow:0 30px 60px #0006, 0 6px 16px #0007;position:relative;padding:14px}
   .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:140px;height:26px;background:#000;border-radius:0 0 16px 16px;opacity:.9;z-index:5}
-  .screen{position:absolute;inset:14px;border-radius:28px;background:#0c1222 url("img/stage.png") center bottom/cover no-repeat;overflow:hidden}
+  .screen{position:absolute;inset:14px;border-radius:28px;background:#0c1222 url("img/stage.webp") center bottom/cover no-repeat;overflow:hidden}
 
   /* character (images cropped tight to the figure; feet sit at the bottom) */
   .man{position:absolute;bottom:20px;left:2%;width:166px;transform-origin:bottom center;transition:transform .3s ease;z-index:2}
@@ -81,7 +81,7 @@
 <div class="bg-decor" aria-hidden="true"></div>
 <div class="container">
   <div class="header">
-    <img class="logo" src="img/hearticon.png" alt="App logo" />
+    <img class="logo" src="img/hearticon.webp" alt="App logo" />
     <div class="title">Dating Messages Simulator</div>
   </div>
   <div class="main-layout">
@@ -106,7 +106,7 @@
         </div>
         <div class="hint" id="moneyHint">Tap or hold + to pile up cash — bills become stacks, then gold.</div>
       </div>
-      <button id="showResults"><img src="img/transparent%20heart.png" alt="" />Show Results</button>
+      <button id="showResults"><img src="img/transparent%20heart.webp" alt="" />Show Results</button>
       <div id="leftResults" class="score">Messages Per Month: <strong><span id="messageCount">—</span></strong></div>
     </div>
     <div class="phone">
@@ -114,13 +114,13 @@
         <div class="notch"></div>
         <div class="screen">
           <div class="man" id="man">
-            <img class="char-shadow" src="img/shadow.png" alt="" />
+            <img class="char-shadow" src="img/shadow.webp" alt="" />
             <div class="char" id="char">
-              <img id="charImg" src="img/body-blank.png" alt="Avatar" />
+              <img id="charImg" src="img/body-blank.webp" alt="Avatar" />
             </div>
           </div>
           <div class="money-area" id="pile"></div>
-          <img class="confetti" id="confetti" src="img/confetti.png" alt="" />
+          <img class="confetti" id="confetti" src="img/confetti.webp" alt="" />
           <div class="rain-area" id="rain"></div>
         </div>
       </div>
@@ -130,14 +130,14 @@
 <script>
 // ---------- image assets ----------
 const FACES = { // by mood tier, worst -> best
-  crying:'img/body-1-crying.png', sad:'img/body-2-sad.png', upset:'img/body-3-upset.png',
-  meh:'img/body-4-meh.png', smile:'img/body-5-smile.png', flirty:'img/body-6-flirty.png',
-  love:'img/body-7-love.png', hearteyes:'img/body-8-hearteyes.png', blank:'img/body-blank.png'
+  crying:'img/body-1-crying.webp', sad:'img/body-2-sad.webp', upset:'img/body-3-upset.webp',
+  meh:'img/body-4-meh.webp', smile:'img/body-5-smile.webp', flirty:'img/body-6-flirty.webp',
+  love:'img/body-7-love.webp', hearteyes:'img/body-8-hearteyes.webp', blank:'img/body-blank.webp'
 };
-const MONEY = { poor:'img/money-poor.png', med:'img/money-med.png', rich:'img/money-rich.png' };
-const HEARTS = ['img/heart.png','img/transparent%20heart.png'];
+const MONEY = { poor:'img/money-poor.webp', med:'img/money-med.webp', rich:'img/money-rich.webp' };
+const HEARTS = ['img/heart.webp','img/transparent%20heart.webp'];
 // preload so expression/money swaps are instant
-[...Object.values(FACES),...Object.values(MONEY),...HEARTS,'img/confetti.png']
+[...Object.values(FACES),...Object.values(MONEY),...HEARTS,'img/confetti.webp']
   .forEach(src => { const i = new Image(); i.src = src; });
 
 // ---------- utilities ----------
