@@ -78,9 +78,27 @@
     background:linear-gradient(180deg,var(--tinder-pink),var(--accent));transition:transform .12s ease, box-shadow .12s ease}
   #showResults:active{transform:scale(.98)}
   #showResults img{width:24px;height:24px;filter:drop-shadow(0 1px 2px #0004)}
+
+  /* loading screen (shown until all images finish loading) */
+  .loader{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+    background:linear-gradient(160deg,var(--tinder-pink) 0%, var(--tinder-orange) 70%);transition:opacity .55s ease}
+  .loader.hide{opacity:0;pointer-events:none}
+  .loader svg{width:78px;height:78px;filter:drop-shadow(0 8px 16px #0004);animation:beat 1s ease-in-out infinite}
+  @keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.2)}30%{transform:scale(1)}45%{transform:scale(1.1)}60%{transform:scale(1)}}
+  .loader-title{font-weight:800;font-size:18px;letter-spacing:.2px;text-shadow:0 1px 0 #0002;opacity:.95;text-align:center;padding:0 20px}
+  .loader-track{width:200px;max-width:60vw;height:8px;border-radius:999px;background:#ffffff33;overflow:hidden}
+  .loader-fill{height:100%;width:0;background:#fff;border-radius:999px;transition:width .25s ease}
+  .loader-pct{font-size:13px;font-weight:700;opacity:.85;font-variant-numeric:tabular-nums}
+  @media (prefers-reduced-motion: reduce){ .loader svg{animation:none} }
 </style>
 </head>
 <body>
+<div class="loader" id="loader">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+  <div class="loader-title">Dating Messages Simulator</div>
+  <div class="loader-track"><div class="loader-fill" id="loaderFill"></div></div>
+  <div class="loader-pct" id="loaderPct">0%</div>
+</div>
 <div class="bg-decor" aria-hidden="true"></div>
 <div class="app">
   <div class="header">
@@ -130,8 +148,32 @@ const FACES = {
 };
 const MONEY = { poor:'img/money-poor.webp', med:'img/money-med.webp', rich:'img/money-rich.webp' };
 const HEARTS = ['img/heart.webp','img/transparent%20heart.webp'];
-[...Object.values(FACES),...Object.values(MONEY),...HEARTS,'img/confetti.webp']
-  .forEach(src => { const i = new Image(); i.src = src; });
+// ---------- preload every image behind a loading screen ----------
+(function preloadWithLoader(){
+  const loader = document.getElementById('loader');
+  const fill = document.getElementById('loaderFill');
+  const pct = document.getElementById('loaderPct');
+  const urls = [...new Set([
+    ...Object.values(FACES), ...Object.values(MONEY), ...HEARTS,
+    'img/confetti.webp','img/hearticon.webp','img/shadow.webp','img/stage.webp','img/bg.webp'
+  ])];
+  const total = urls.length, start = performance.now();
+  let loaded = 0, done = false;
+  function tick(){
+    loaded++;
+    const p = Math.round(loaded / total * 100);
+    if (fill) fill.style.width = p + '%';
+    if (pct) pct.textContent = p + '%';
+    if (loaded >= total) finish();
+  }
+  function finish(){
+    if (done) return; done = true;
+    const wait = Math.max(0, 400 - (performance.now() - start)); // avoid a jarring flash on fast/cached loads
+    setTimeout(()=>{ if (loader){ loader.classList.add('hide'); setTimeout(()=> loader.remove(), 650); } }, wait);
+  }
+  urls.forEach(src => { const img = new Image(); img.onload = img.onerror = tick; img.src = src; });
+  setTimeout(finish, 8000); // safety net: never hang the screen
+})();
 
 // ---------- utilities ----------
 const fmtMoney = (n) => n.toLocaleString(undefined, { style:'currency', currency:'USD', maximumFractionDigits:0 });
