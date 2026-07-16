@@ -30,7 +30,7 @@
   .stage{position:relative;flex:1 1 auto;min-height:0;border-radius:24px;overflow:hidden;
     background:#0c1222 url("img/stage.webp") center bottom/cover no-repeat;box-shadow:0 14px 34px #0005, inset 0 0 0 1px #ffffff10}
 
-  .m-man{position:absolute;bottom:4%;left:3%;transform-origin:bottom center;transition:transform .3s ease;z-index:2}
+  .m-man{position:absolute;bottom:4%;left:3%;width:min(42vw,32vh);transform-origin:bottom center;transition:transform .3s ease;z-index:2}
   .char-shadow{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);opacity:.8;pointer-events:none}
   .char{display:block;animation:breathe 3.4s ease-in-out infinite}
   .char img{display:block;width:100%;height:auto;filter:drop-shadow(0 10px 14px #0005)}
@@ -38,7 +38,7 @@
   .char.hop{animation:hop .95s ease}
   @keyframes hop{0%{transform:translateY(0)}28%{transform:translateY(-20px)}52%{transform:translateY(0)}68%{transform:translateY(-8px)}84%{transform:translateY(0)}100%{transform:translateY(0)}}
 
-  .m-money{position:absolute;bottom:5%;right:5%;pointer-events:none;z-index:2}
+  .m-money{position:absolute;bottom:5%;right:5%;width:min(28vw,20vh);pointer-events:none;z-index:2}
   .coin{position:absolute;left:50%;bottom:0;height:auto;filter:drop-shadow(0 5px 7px #0006);transform:translateX(-50%) scale(1);animation:pop .4s cubic-bezier(.2,1.3,.5,1) backwards}
   @keyframes pop{0%{transform:translateX(-50%) scale(0)}70%{transform:translateX(-50%) scale(1.12)}100%{transform:translateX(-50%) scale(1)}}
 
@@ -144,6 +144,7 @@ const SAL_MIN = 20000, SAL_MAX = 300000, SAL_STEP = 20000;
 let current = { height_in: 70, salary_usd: 45000 };
 let model = null;
 let MICON = 104, MFILL = 360;                 // money bundle width + full-stack height (set by layout)
+let _lastSizeKey = '';                        // avoid rebuilding the pile (and restarting its pop-in) on redundant layout calls
 const stageEl = document.getElementById('stage');
 const hDown = document.getElementById('hDown'), hUp = document.getElementById('hUp');
 const sDown = document.getElementById('sDown'), sUp = document.getElementById('sUp');
@@ -178,7 +179,8 @@ function layout(){
   MICON = Math.min(0.27 * W, 0.30 * MFILL);           // money bundle width
   pile.style.width = MICON + 'px';
   pile.style.height = MFILL + 'px';
-  buildPile();
+  const key = Math.round(MICON) + 'x' + Math.round(MFILL);
+  if (key !== _lastSizeKey){ _lastSizeKey = key; buildPile(); }  // rebuild only when size truly changes
 }
 
 function updateHeightViz(){
@@ -329,6 +331,12 @@ document.getElementById('showResults').addEventListener('click', ()=>{
 let rz;
 window.addEventListener('resize', ()=>{ clearTimeout(rz); rz = setTimeout(layout, 120); });
 window.addEventListener('orientationchange', ()=> setTimeout(layout, 250));
+// robust: re-run sizing the moment the stage actually has dimensions
+// (fixes the character rendering at full natural size if the stage
+//  isn't measurable yet when this script first runs on some devices)
+if (window.ResizeObserver) new ResizeObserver(()=> layout()).observe(stageEl);
+window.addEventListener('load', layout);
+requestAnimationFrame(layout);
 
 (function init(){
   current.height_in = 70; current.salary_usd = 45000;
